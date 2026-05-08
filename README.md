@@ -2,11 +2,13 @@
 
 Production-ready REST API for e-commerce built with **Laravel 13** and **Stripe**.
 
+**🌐 Live API:** `https://laravel-ecommerce-api-production.up.railway.app`
+
 [![CI](https://github.com/hijrahassalam/laravel-ecommerce-api/actions/workflows/ci.yml/badge.svg)](https://github.com/hijrahassalam/laravel-ecommerce-api/actions/workflows/ci.yml)
 
 ## Tech Stack
 
-Laravel 13 · PHP 8.4 · MySQL 8 · Stripe SDK · PHPUnit · Docker
+Laravel 13 · PHP 8.4 · PostgreSQL (Neon) · Stripe SDK · PHPUnit · Docker
 
 ## Features
 
@@ -16,9 +18,10 @@ Laravel 13 · PHP 8.4 · MySQL 8 · Stripe SDK · PHPUnit · Docker
 - [x] Stripe Webhook handler (payment confirmed, failed, expired)
 - [x] Order management (customer + admin)
 - [x] Refund flow
-- [x] PHPUnit feature tests (35+ tests)
+- [x] PHPUnit feature tests (31 tests, all passing)
 - [x] Docker + docker-compose setup
-- [x] GitHub Actions CI
+- [x] Dockerfile for Railway deployment
+- [x] Auto-migration + seeding on first deploy
 
 ## API Endpoints
 
@@ -63,9 +66,19 @@ Laravel 13 · PHP 8.4 · MySQL 8 · Stripe SDK · PHPUnit · Docker
 |--------|----------|-------------|
 | POST | `/api/webhook/stripe` | Stripe webhook |
 
+## Live Demo
+
+```bash
+# List products
+curl https://laravel-ecommerce-api-production.up.railway.app/api/products
+
+# Health check
+curl https://laravel-ecommerce-api-production.up.railway.app/api/up
+```
+
 ## Setup
 
-### Using Docker (Recommended)
+### Local Development (Docker)
 
 ```bash
 git clone https://github.com/hijrahassalam/laravel-ecommerce-api.git
@@ -75,27 +88,34 @@ docker-compose up -d --build
 docker-compose exec app composer install
 docker-compose exec app php artisan key:generate
 docker-compose exec app php artisan migrate --seed
+php artisan serve
 ```
 
 API available at `http://localhost:8000`
 
-### Without Docker
+### Deploy to Railway
 
-```bash
-git clone https://github.com/hijrahassalam/laravel-ecommerce-api.git
-cd laravel-ecommerce-api
-composer install
-cp .env.example .env
-php artisan key:generate
-php artisan migrate --seed
-php artisan serve
-```
+1. Fork/clone this repo to your GitHub
+2. Create a project at [railway.app](https://railway.app)
+3. Add **PostgreSQL** database (Neon or Railway)
+4. Set environment variables:
+   ```
+   DB_CONNECTION=pgsql
+   DB_HOST=<your-postgres-host>
+   DB_PORT=5432
+   DB_DATABASE=<your-db-name>
+   DB_USERNAME=<your-db-user>
+   DB_PASSWORD=<your-db-password>
+   APP_KEY=base64:<generate-with-php-artisan-key:generate>
+   ```
+5. Railway auto-detects Dockerfile and deploys
+6. On first deploy, migrations and seeders run automatically
 
 ## Stripe Setup
 
 1. Create account at [stripe.com](https://stripe.com)
 2. Get API keys from Dashboard → Developers → API keys
-3. Set in `.env`:
+3. Set in environment variables:
    ```
    STRIPE_KEY=pk_test_...
    STRIPE_SECRET=sk_test_...
@@ -138,7 +158,7 @@ laravel-ecommerce-api/
 │   └── seeders/     (ProductSeeder - 6 products)
 ├── config/          (app, database, cors, session, stripe)
 ├── routes/api.php
-├── tests/Feature/   (35+ tests)
+├── tests/Feature/   (31 tests)
 ├── docker-compose.yml
 └── Dockerfile
 ```
