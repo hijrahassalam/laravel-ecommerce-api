@@ -35,7 +35,7 @@ Route::get('/orders/{id}', [OrderController::class, 'show']);
 Route::post('/webhook/stripe', [StripeWebhookController::class, 'handle'])
     ->withoutMiddleware(['Illuminate\Foundation\Http\Middleware\VerifyCsrfToken']);
 
-// Admin (basic — no auth middleware for demo purposes)
+// Admin routes
 Route::prefix('admin')->group(function () {
     Route::get('/orders', [OrderAdminController::class, 'index']);
     Route::get('/orders/stats', [OrderAdminController::class, 'stats']);

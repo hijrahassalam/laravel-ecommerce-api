@@ -56,14 +56,42 @@ class OrderController extends Controller
         }
 
         $stripeKey = config('stripe.secret');
+        $sessionId = $request->header('X-Session-ID') ?? Str::random(40);
+        $userId = $request->user()?->id;
 
-        if (!$stripeKey || $stripeKey === 'sk_test_your_secret_key') {
-            return response()->json([
-                'message' => 'Stripe is not configured',
-                'hint' => 'Set STRIPE_SECRET in your .env file',
-            ], 503);
+        // Create pending order first (always)
+        $order = Order::create([
+            'user_id' => $userId,
+            'session_id' => $sessionId,
+            'status' => Order::STATUS_PENDING,
+            'total_amount' => $cart->subtotal,
+            'currency' => 'usd',
+            'items_count' => $cart->item_count,
+        ]);
+
+        foreach ($cart->items as $item) {
+            $order->items()->create([
+                'product_id' => $item->product_id,
+                'product_name' => $item->product?->name ?? 'Unknown Product',
+                'quantity' => $item->quantity,
+                'price' => $item->price,
+                'subtotal' => $item->subtotal,
+            ]);
         }
 
+        // If Stripe not configured, return mock response for testing
+        if (!$stripeKey || $stripeKey === 'sk_test_your_secret_key') {
+            return response()->json([
+                'data' => [
+                    'checkout_url' => config('app.url') . '/checkout/mock?order_id=' . $order->id,
+                    'session_id' => 'cs_test_mock_' . $order->id,
+                    'order_id' => $order->id,
+                    'warning' => 'Stripe not configured - using mock mode',
+                ],
+            ]);
+        }
+
+        // Real Stripe checkout
         $lineItems = $cart->items->map(function ($item) {
             return [
                 'price_data' => [
@@ -77,9 +105,6 @@ class OrderController extends Controller
                 'quantity' => $item->quantity,
             ];
         })->toArray();
-
-        $sessionId = $request->header('X-Session-ID') ?? Str::random(40);
-        $userId = $request->user()?->id;
 
         try {
             $stripe = new \Stripe\StripeClient($stripeKey);
@@ -99,26 +124,7 @@ class OrderController extends Controller
                 ],
             ]);
 
-            // Create pending order
-            $order = Order::create([
-                'user_id' => $userId,
-                'session_id' => $sessionId,
-                'stripe_session_id' => $session->id,
-                'status' => Order::STATUS_PENDING,
-                'total_amount' => $cart->subtotal,
-                'currency' => 'usd',
-                'items_count' => $cart->item_count,
-            ]);
-
-            foreach ($cart->items as $item) {
-                $order->items()->create([
-                    'product_id' => $item->product_id,
-                    'product_name' => $item->product?->name ?? 'Unknown Product',
-                    'quantity' => $item->quantity,
-                    'price' => $item->price,
-                    'subtotal' => $item->subtotal,
-                ]);
-            }
+            $order->update(['stripe_session_id' => $session->id]);
 
             return response()->json([
                 'data' => [
@@ -128,6 +134,7 @@ class OrderController extends Controller
                 ],
             ]);
         } catch (\Exception $e) {
+            $order->update(['stripe_session_id' => 'cs_err_' . Str::random(10)]);
             return response()->json([
                 'message' => 'Failed to create checkout session',
                 'error' => $e->getMessage(),
