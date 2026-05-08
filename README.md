@@ -223,6 +223,17 @@ laravel-ecommerce-api/
 └── Dockerfile       (Railway deployment)
 ```
 
+## 🔗 Related Projects
+
+| Project | Description | Live |
+|---|---|---|
+| [laravel-ecommerce-api](https://github.com/hijrahassalam/laravel-ecommerce-api) | Backend REST API (Laravel 13) | [railway.app](https://laravel-ecommerce-api-production.up.railway.app/api/products) |
+| [vue-ecommerce-store](https://github.com/hijrahassalam/vue-ecommerce-store) | Frontend SPA (Vue 3) | [netlify.app](https://vue-ecommerce-store-fe.netlify.app) |
+
+## 👤 Author
+
+**Hijrah Assalam** — [hijrahassalam.com](https://hijrahassalam.com) · [GitHub](https://github.com/hijrahassalam)
+
 ## License
 
 MIT
