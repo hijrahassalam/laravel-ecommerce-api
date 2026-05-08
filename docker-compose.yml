@@ -1,0 +1,39 @@
+version: "3.8"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: laravel_ecommerce_app
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - mysql
+    networks:
+      - laravel_ecommerce
+
+  mysql:
+    image: mysql:8.0
+    container_name: laravel_ecommerce_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: laravel_ecommerce
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_PASSWORD: secret
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - laravel_ecommerce
+
+networks:
+  laravel_ecommerce:
+    driver: bridge
+
+volumes:
+  mysql_data:
