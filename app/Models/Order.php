@@ -49,4 +49,9 @@ class Order extends Model
     {
         return $this->status === self::STATUS_PAID;
     }
+
+    public function isRefunded(): bool
+    {
+        return $this->status === self::STATUS_REFUNDED;
+    }
 }
