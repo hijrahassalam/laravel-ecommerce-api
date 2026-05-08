@@ -7,7 +7,6 @@
     "require": {
         "php": "^8.2",
         "laravel/framework": "^13.0",
-        "laravel/sanctum": "^4.0",
         "stripe/stripe-php": "^16.0"
     },
     "require-dev": {
