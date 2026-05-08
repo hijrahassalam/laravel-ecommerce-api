@@ -22,6 +22,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Copy application
 COPY . .
 
+# Install PHP dependencies (generate vendor/)
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
 # Expose port
 EXPOSE 8000
 
