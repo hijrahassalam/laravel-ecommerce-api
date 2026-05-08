@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CartController;
 use App\Http\Controllers\ProductController;
 use Illuminate\Support\Facades\Route;
 
@@ -9,4 +10,11 @@ Route::get('/up', function () {
 });
 
 // Products
-Route::apiResource('products', ProductController::class);
+Route::apiResource('products', ProductController::class)->only(['index', 'show']);
+
+// Cart
+Route::get('/cart', [CartController::class, 'show']);
+Route::post('/cart/items', [CartController::class, 'addItem']);
+Route::put('/cart/items/{id}', [CartController::class, 'updateItem']);
+Route::delete('/cart/items/{id}', [CartController::class, 'removeItem']);
+Route::delete('/cart', [CartController::class, 'clear']);
