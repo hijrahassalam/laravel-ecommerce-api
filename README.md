@@ -1,27 +1,92 @@
 # Laravel E-Commerce API
 
+**🌐 Live API:** `https://laravel-ecommerce-api-production.up.railway.app/api/products`
+
 Production-ready REST API for e-commerce built with **Laravel 13** and **Stripe**.
 
-**🌐 Live API:** `https://laravel-ecommerce-api-production.up.railway.app`
-
+[![Laravel](https://img.shields.io/badge/Laravel-13-red?style=flat-square&logo=laravel)](https://laravel.com)
+[![PHP](https://img.shields.io/badge/PHP-8.4-777BB4?style=flat-square&logo=php)](https://php.net)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-336791?style=flat-square&logo=postgresql)](https://neon.tech)
+[![Stripe](https://img.shields.io/badge/Stripe-Ready-635BFF?style=flat-square&logo=stripe)](https://stripe.com)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=flat-square&logo=docker)](https://docker.com)
+[![Railway](https://img.shields.io/badge/Deploy-Railway-744EF7?style=flat-square&logo=railway)](https://railway.app)
+[![Neon](https://img.shields.io/badge/DB-Neon%20PostgreSQL-000000?style=flat-square&logo=postgresql)](https://neon.tech)
 [![CI](https://github.com/hijrahassalam/laravel-ecommerce-api/actions/workflows/ci.yml/badge.svg)](https://github.com/hijrahassalam/laravel-ecommerce-api/actions/workflows/ci.yml)
+[![Tests](https://img.shields.io/badge/Tests-31%20passing-10B981?style=flat-square)](https://github.com/hijrahassalam/laravel-ecommerce-api/actions)
 
-## Tech Stack
+## Deployment
 
-Laravel 13 · PHP 8.4 · PostgreSQL (Neon) · Stripe SDK · PHPUnit · Docker
+This API is deployed on **Railway** with **Neon PostgreSQL** as the database.
+
+### Infrastructure
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  Railway                                                │
+│  ┌──────────────────┐                                  │
+│  │  Laravel API     │  ← PHP 8.4 + Docker              │
+│  │  (Dockerfile)    │  ← Auto-migrate + seed           │
+│  └────────┬─────────┘                                  │
+│           │                                             │
+│           │ pgsql://                                    │
+│           ▼                                             │
+│  ┌──────────────────┐                                  │
+│  │  Neon PostgreSQL  │  ← Serverless, 3GB free         │
+│  └──────────────────┘                                  │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Deploy to Railway (Your Own)
+
+1. Create account at [railway.app](https://railway.app) (free tier available)
+2. Create **PostgreSQL** database at [neon.tech](https://neon.tech) (free, no credit card)
+3. Fork this repo to your GitHub
+4. In Railway → **New Project** → **Deploy from GitHub**
+5. Add environment variables:
+
+   ```env
+   DB_CONNECTION=pgsql
+   DB_HOST=your-neon-host.ep-xxx.aws.neon.tech
+   DB_PORT=5432
+   DB_DATABASE=laravel_ecommerce
+   DB_USERNAME=your-neon-username
+   DB_PASSWORD=your-neon-password
+
+   APP_KEY=base64:<generate-with-php-artisan-key:generate>
+
+   STRIPE_KEY=pk_test_...
+   STRIPE_SECRET=sk_test_...
+   STRIPE_WEBHOOK_SECRET=whsec_...
+   ```
+
+6. Railway auto-detects `Dockerfile` and deploys
+7. On first deploy, **migrations + seeding run automatically**
 
 ## Features
 
-- [x] Product management (CRUD + search)
+- [x] Product management (CRUD + search + pagination)
 - [x] Shopping cart (session-based, stock validation)
 - [x] Stripe Checkout Session
 - [x] Stripe Webhook handler (payment confirmed, failed, expired)
 - [x] Order management (customer + admin)
 - [x] Refund flow
 - [x] PHPUnit feature tests (31 tests, all passing)
-- [x] Docker + docker-compose setup
+- [x] Docker + docker-compose for local dev
 - [x] Dockerfile for Railway deployment
 - [x] Auto-migration + seeding on first deploy
+- [x] PostgreSQL via Neon (serverless, no card required)
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Framework | Laravel 13 |
+| Language | PHP 8.4 |
+| Database | PostgreSQL 16 (Neon) |
+| Payments | Stripe SDK |
+| Container | Docker |
+| Hosting | Railway |
+| Tests | PHPUnit |
 
 ## API Endpoints
 
@@ -74,11 +139,14 @@ curl https://laravel-ecommerce-api-production.up.railway.app/api/products
 
 # Health check
 curl https://laravel-ecommerce-api-production.up.railway.app/api/up
+
+# View cart
+curl https://laravel-ecommerce-api-production.up.railway.app/api/cart
 ```
 
-## Setup
+## Local Development
 
-### Local Development (Docker)
+### With Docker
 
 ```bash
 git clone https://github.com/hijrahassalam/laravel-ecommerce-api.git
@@ -93,23 +161,17 @@ php artisan serve
 
 API available at `http://localhost:8000`
 
-### Deploy to Railway
+### Without Docker
 
-1. Fork/clone this repo to your GitHub
-2. Create a project at [railway.app](https://railway.app)
-3. Add **PostgreSQL** database (Neon or Railway)
-4. Set environment variables:
-   ```
-   DB_CONNECTION=pgsql
-   DB_HOST=<your-postgres-host>
-   DB_PORT=5432
-   DB_DATABASE=<your-db-name>
-   DB_USERNAME=<your-db-user>
-   DB_PASSWORD=<your-db-password>
-   APP_KEY=base64:<generate-with-php-artisan-key:generate>
-   ```
-5. Railway auto-detects Dockerfile and deploys
-6. On first deploy, migrations and seeders run automatically
+```bash
+git clone https://github.com/hijrahassalam/laravel-ecommerce-api.git
+cd laravel-ecommerce-api
+composer install
+cp .env.example .env
+php artisan key:generate
+php artisan migrate --seed
+php artisan serve
+```
 
 ## Stripe Setup
 
@@ -133,8 +195,6 @@ API available at `http://localhost:8000`
 
 ```bash
 php artisan test
-# or with coverage:
-php artisan test --coverage
 ```
 
 ## Project Structure
@@ -160,7 +220,7 @@ laravel-ecommerce-api/
 ├── routes/api.php
 ├── tests/Feature/   (31 tests)
 ├── docker-compose.yml
-└── Dockerfile
+└── Dockerfile       (Railway deployment)
 ```
 
 ## License
