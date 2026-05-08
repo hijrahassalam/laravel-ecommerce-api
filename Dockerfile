@@ -29,11 +29,14 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 # Expose port
 EXPOSE 8000
 
-# Entrypoint: run migrations then serve
+# Entrypoint: run migrations+seed only if not done yet, then serve
 COPY <<EOF /entrypoint.sh
 #!/bin/bash
-php artisan migrate --force
-php artisan db:seed --force
+if [ ! -f /var/www/html/.migrations_done ]; then
+    php artisan migrate --force
+    php artisan db:seed --force
+    touch /var/www/html/.migrations_done
+fi
 exec php artisan serve --host=0.0.0.0 --port=8000
 EOF
 RUN chmod +x /entrypoint.sh
