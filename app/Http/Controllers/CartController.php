@@ -72,6 +72,12 @@ class CartController extends Controller
             $existingItem->update(['quantity' => $newQuantity]);
             $item = $existingItem;
         } else {
+            if ($quantity > $product->stock) {
+                return response()->json([
+                    'message' => "Only {$product->stock} units available",
+                ], 400);
+            }
+
             $item = $cart->items()->create([
                 'product_id' => $product->id,
                 'quantity' => $quantity,

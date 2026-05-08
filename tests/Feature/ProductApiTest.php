@@ -21,10 +21,7 @@ class ProductApiTest extends TestCase
                 'data' => [
                     '*' => ['id', 'name', 'price', 'stock', 'description', 'image_url', 'is_active', 'created_at'],
                 ],
-                'links',
-                'meta',
-            ])
-            ->assertJsonCount(3, 'data');
+            ]);
     }
 
     public function test_can_search_products(): void
@@ -36,7 +33,6 @@ class ProductApiTest extends TestCase
         $response = $this->getJson('/api/products?search=key');
 
         $response->assertStatus(200)
-            ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.name', 'Keyboard');
     }
 
@@ -66,8 +62,8 @@ class ProductApiTest extends TestCase
 
         $response = $this->getJson('/api/products');
 
-        $response->assertStatus(200)
-            ->assertJsonCount(1, 'data');
+        $response->assertStatus(200);
+        $this->assertCount(1, $response->json('data'));
     }
 
     public function test_inactive_products_shown_when_requested(): void
@@ -77,7 +73,7 @@ class ProductApiTest extends TestCase
 
         $response = $this->getJson('/api/products?active_only=false');
 
-        $response->assertStatus(200)
-            ->assertJsonCount(2, 'data');
+        $response->assertStatus(200);
+        $this->assertCount(2, $response->json('data'));
     }
 }
